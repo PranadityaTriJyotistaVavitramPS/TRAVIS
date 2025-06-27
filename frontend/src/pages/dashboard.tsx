@@ -31,7 +31,7 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchPhotos = async () => {
       try {
-        const res = await axios.get('http://localhost:5000/api/v1/photos/takeAllEvidence');
+        const res = await axios.get('https://travis-5ojk.onrender.com/api/v1/photos/takeAllEvidence');
         if (res.data?.data) {
           setPhotoData(res.data.data);
         }

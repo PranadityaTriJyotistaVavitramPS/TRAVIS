@@ -29,7 +29,7 @@ function Profile(){
       return;
     }
 
-    const response = await fetch('http://localhost:5000/api/v1/users/infoUser', {
+    const response = await fetch('https://travis-5ojk.onrender.com/api/v1/users/infoUser', {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`, 
@@ -74,7 +74,7 @@ function Profile(){
     }
 
     // Mengirim data untuk update
-    const response = await fetch('http://localhost:5000/api/v1/users/updateProfile', {
+    const response = await fetch('https://travis-5ojk.onrender.com/api/v1/users/updateProfile', {
       method: 'PUT',  // Menggunakan PUT untuk memperbarui data
       headers: {
         'Authorization': `Bearer ${token}`,  // Mengirim token di header

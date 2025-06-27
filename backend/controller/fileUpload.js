@@ -1,10 +1,10 @@
 const fs = require('fs').promises;
 const { Storage} = require('@google-cloud/storage')
 const path = require('path');
-const key = require('../secrets/coherent-window-450116-a4-ed4a9b76d13e.json')
+const key = require('/etc/secrets/coherent-window-450116-a4-ed4a9b76d13e.json')
 
 const storage = new Storage({
-    keyFilename: './secrets/coherent-window-450116-a4-ed4a9b76d13e.json'
+    keyFilename: '/etc/secrets/coherent-window-450116-a4-ed4a9b76d13e.json'
 });
 
 const bucket = storage.bucket('travis-storage');
