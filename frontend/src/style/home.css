@@ -1,0 +1,126 @@
+/* General Container Styling for Home Section */
+.home-main-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  font-family: "Plus Jakarta Sans", sans-serif;
+  text-align: center;
+  background-color: #f4f7fa;
+  border-radius: 15px; 
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  padding: 2rem;
+}
+
+/* Header Styling for Home Section with Typing Effect */
+.home-main-container h1 {
+  font-size: 3rem;
+  font-weight: 800;
+  color: #333;
+  margin-bottom: 2rem;
+  line-height: 1.2;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  display: inline-block;
+  white-space: nowrap; /* Prevent line breaks */
+  overflow: hidden; /* Hide text that exceeds the container */
+  border-right: 4px solid #333; /* Simulate cursor */
+  animation: typing 4s steps(40) 1s forwards, blink-caret 0.75s step-end infinite;
+
+}
+
+/* Typing animation */
+@keyframes typing {
+  from {
+    width: 0
+  }
+  to {
+    width: 85%;
+  }
+}
+
+/* Blinking cursor */
+@keyframes blink-caret {
+  50% {
+    border-color: transparent;
+  }
+}
+
+/* Hover effect for header */
+.home-main-container h1:hover {
+  transform: translateY(-5px); /* Slight lifting effect */
+}
+
+/* Subheader Styling for Home Section */
+.subheader {
+  font-size: 1.2rem;
+  font-weight: 400;
+  color: #555;
+  margin-bottom: 2.5rem;
+  line-height: 1.7;
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
+  transition: color 0.3s ease;
+}
+
+.subheader:hover {
+  color: #333; /* Hover effect for subtle interaction */
+}
+
+/* Image Styling for Home Section */
+.street-photo {
+  width: 100%;
+  max-width: 1000px;
+  height: auto;
+  border-radius: 10px;
+  margin-top: 3rem;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.street-photo:hover {
+  transform: scale(1.05); /* Zoom effect on hover */
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* Responsive Design for Home Section */
+@media (max-width: 768px) {
+  .home-main-container {
+    padding: 4rem 1.5rem;
+  }
+
+  .home-main-container h1 {
+    font-size: 2.5rem;
+  }
+
+  .subheader {
+    font-size: 1.1rem;
+  }
+
+  .faq-cards-container {
+    grid-template-columns: repeat(2, 1fr); 
+  }
+}
+
+@media (max-width: 480px) {
+  .home-main-container {
+    padding: 3rem 1rem;
+  }
+
+  .home-main-container h1 {
+    font-size: 2rem;
+  }
+
+  .subheader {
+    font-size: 1rem;
+  }
+
+  .faq-cards-container {
+    grid-template-columns: 1fr; 
+  }
+
+  .street-photo {
+    max-width: 100%;
+    margin-top: 2rem;
+  }
+}

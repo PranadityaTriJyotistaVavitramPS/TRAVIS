@@ -1,0 +1,172 @@
+/* Container */
+.profile-main-container {
+  display: flex;
+  justify-content: center;
+  padding: 2rem;
+  background-color: #f5f7fa;
+  min-height: 100vh;
+}
+
+.profile-container {
+  width: 100%;
+  max-width: 1000px;
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+}
+
+/* Layout */
+.profile-row {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+/* Sidebar */
+.profile-sidebar {
+  background-color: #f0f2f5;
+  flex: 1;
+  min-width: 250px;
+  text-align: center;
+  padding: 2rem 1rem;
+  border-right: 1px solid #e0e0e0;
+}
+
+.profile-picture-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.profile-picture {
+  border-radius: 50%;
+  width: 120px;
+  height: 120px;
+  object-fit: cover;
+  margin-bottom: 1rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.profile-name {
+  font-size: 1.2rem;
+  font-weight: bold;
+  margin-top: 0.5rem;
+}
+
+.profile-email {
+  font-size: 0.95rem;
+  color: #555;
+  margin-top: 0.3rem;
+}
+
+/* Main Content */
+.profile-content {
+  flex: 2;
+  padding: 2rem;
+}
+
+.profile-header h4 {
+  font-size: 1.4rem;
+  font-weight: bold;
+  margin-bottom: 1.5rem;
+  color: #333;
+}
+
+/* Input Groups */
+.profile-group,
+.profile-group-inline {
+  margin-bottom: 1rem;
+}
+
+.profile-group-inline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.profile-label {
+  font-weight: 500;
+  font-size: 0.95rem;
+  margin-bottom: 0.25rem;
+  display: block;
+  color: #555;
+}
+
+.profile-input {
+  width: 100%;
+  padding: 0.6rem 0.8rem;
+  font-size: 0.95rem;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  transition: border 0.2s ease;
+}
+
+.profile-input:focus {
+  border-color: #007bff;
+  outline: none;
+}
+
+/* Value Text (View Mode) */
+.profile-value {
+  background-color: #f9f9f9;
+  padding: 0.5rem 0.8rem;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  color: #333;
+  border: 1px solid #e1e1e1;
+}
+
+/* Button Group */
+.profile-button-wrapper {
+  margin-top: 2rem;
+  text-align: center;
+}
+
+.btn-edit,
+.btn-save {
+  padding: 0.6rem 1.5rem;
+  font-size: 1rem;
+  border-radius: 6px;
+  border: none;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-edit {
+  background-color: #007bff;
+  color: white;
+}
+
+.btn-edit:hover {
+  background-color: #0056b3;
+}
+
+.btn-save {
+  background-color: #28a745;
+  color: white;
+}
+
+.btn-save:hover {
+  background-color: #1e7e34;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .profile-row {
+    flex-direction: column;
+  }
+
+  .profile-sidebar {
+    border-right: none;
+    border-bottom: 1px solid #ddd;
+  }
+
+  .profile-content {
+    padding: 1.5rem;
+  }
+
+  .profile-group-inline {
+    flex-direction: column;
+  }
+}

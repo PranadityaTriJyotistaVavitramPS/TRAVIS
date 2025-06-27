@@ -1,0 +1,66 @@
+
+/* Product Merits Section */
+.product-merits {
+  padding-top: 40px;
+  padding-bottom: 1rem; /* py-10 */
+  padding-left: 1rem; /* px-4 */
+  padding-right: 1rem; 
+  margin: 120px auto;
+  font-family: "Plus Jakarta Sans"; 
+}
+
+.container {
+  max-width: 1200px; 
+  margin: 0 auto;
+}
+
+.row{
+  display: flex;
+  gap: 20px;
+}
+
+.merit-card {
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  padding: 1.5rem;
+  display: flex;
+  width: 900px;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.merit-card:hover{
+  cursor: pointer;
+  transform: scale(1.05);
+}
+
+.content-title {
+  font-size: 1.25rem;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 1rem;
+}
+
+.content-text {
+  font-size: 1rem;
+  color: #666;
+  text-align: center;
+}
+
+/* Responsive Design */
+@media (min-width: 768px) {
+  .merit-card {
+    padding-left: 2rem; /* px-5 for large screen */
+    padding-right: 2rem; /* px-5 for large screen */
+  }
+}
+
+@media (max-width: 767px) {
+  /* Adjust layout for small screens */
+  .merit-card {
+    padding-left: 1rem; /* px-2 for smaller screens */
+    padding-right: 1rem; /* px-2 for smaller screens */
+  }
+}
