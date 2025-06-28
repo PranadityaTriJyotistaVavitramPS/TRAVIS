@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require("bcrypt");
 const { OAuth2Client } = require('google-auth-library')
 const axios = require('axios')
+const cookieParser = require('cookie-parser');
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID)
 
@@ -71,6 +72,7 @@ exports.takeUserProfile = async(req,res) =>{
 
 exports.updateUserProfile = async(req,res) =>{
     const{nama_lengkap, nomor_telepon, alamat, device_id, kode_pos,negara, provinsi} = req.body;
+    const token  = req.cookies.token
     const {id_user} = req.user;
 
     try {
@@ -78,7 +80,10 @@ exports.updateUserProfile = async(req,res) =>{
         if(nama_lengkap) updatedFields.nama_lengkap = nama_lengkap;
         if(nomor_telepon) updatedFields.nomor_telepon = nomor_telepon;
         if(alamat) updatedFields.alamat = alamat;
-        if(device_id) updatedFields.device_id = device_id;
+        if(device_id) {
+            updatedFields.device_id = device_id;
+            console.log("token", token)
+        }
         if(kode_pos) updatedFields.kode_pos = kode_pos;
         if(negara) updatedFields.negara = negara;
         if(provinsi) updatedFields.provinsi = provinsi

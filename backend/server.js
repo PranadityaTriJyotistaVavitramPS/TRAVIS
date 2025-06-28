@@ -4,9 +4,10 @@ const app = express();
 const db = require("./db")
 const multer = require("multer");
 const cors = require("cors");
-
+const cookieParser = require('cookie-parser');
 
 app.use(express.json());
+app.use(cookieParser());
 
 const corsOptions = {
   origin: 'http://localhost:5173', 
