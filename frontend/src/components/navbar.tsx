@@ -3,7 +3,7 @@ import { GoogleLogin } from '@react-oauth/google';
 import '../style/navbar.css'; // Import the CSS file
 import logoProduct from "../assets/images/logo-product.png"
 import brandName from "../assets/images/brandname.png"
-import Cookies from "../../node_modules/@types/js-cookie";
+import Cookies from "js-cookie";
 import axios from "axios";
 import { useState,useEffect } from "react";
 

@@ -1,6 +1,6 @@
 import { useState,useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import Cookies from "../../node_modules/@types/js-cookie";
+import Cookies from "js-cookie";
 import "../style/profile.css"
 
 function Profile(){
