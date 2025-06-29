@@ -71,8 +71,7 @@ exports.takeUserProfile = async(req,res) =>{
 
 
 exports.updateUserProfile = async(req,res) =>{
-    const{nama_lengkap, nomor_telepon, alamat, device_id, kode_pos,negara, provinsi} = req.body;
-    const token  = req.cookies.token
+    const{nama_lengkap, nomor_telepon, alamat, device_id, kode_pos,negara, provinsi, token_data} = req.body;
     const {id_user} = req.user;
 
     try {
@@ -82,7 +81,12 @@ exports.updateUserProfile = async(req,res) =>{
         if(alamat) updatedFields.alamat = alamat;
         if(device_id) {
             updatedFields.device_id = device_id;
-            console.log("token", token)
+            const currentUrl = await exports.getAddress(device_id);
+            if (currentUrl) {
+                await axios.post(`${currentUrl}/api/receive-token`, {
+                    token: token_data
+                });
+            }
         }
         if(kode_pos) updatedFields.kode_pos = kode_pos;
         if(negara) updatedFields.negara = negara;
@@ -102,7 +106,7 @@ exports.updateUserProfile = async(req,res) =>{
         })
         
     } catch (error) {
-        console.error("Internal Server Error", error.message);
+        console.error("Internal Server Error", error.message, error);
         res.status(500).json({
             message:"Internal Server Error wkwkwk"
         })
@@ -169,36 +173,4 @@ exports.getAddress = async (sbc_id) => {
     }
 };
 
-exports.sendToken = async (req, res) => {
-    const { sbc_id,token_data  } = req.body;
-
-    try {
-        const current_base_url = await exports.getAddress(sbc_id);
-
-        if (!current_base_url) {
-            return res.status(404).json({
-                message: `No address found for SBC ID: ${sbc_id}`
-            });
-        }
-
-        const current_url = `${current_base_url}/api/receive-token`;
-
-        const axiosResponse = await axios.post(current_url, {
-            token: token_data || 'example-token-value' 
-        });
-
-        res.status(200).json({
-            message: 'Token sent successfully',
-            current_url: current_url,
-            response_from_target: axiosResponse.data
-        });
-
-
-    } catch (error) {
-        console.error("Error while sending token:", error);
-        res.status(500).json({
-            message: "Internal Server Error: Something went wrong while processing your request."
-        });
-    }
-};
 

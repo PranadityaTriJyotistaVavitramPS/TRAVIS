@@ -79,3 +79,28 @@ exports.takeInfoPelanggaran = async(req,res) =>{
 
 }
 
+exports.userEvidence = async (req, res) => {
+    const { id_user } = req.user;
+    try {
+        const result = await query(`
+            SELECT * FROM foto_table WHERE id_user = $1
+        `, [id_user]);
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({
+                message: "Pengguna masih belum mendapatkan bukti pelanggaran."
+            });
+        }
+
+        res.status(200).json({
+            message: "Bukti pelanggaran ditemukan.",
+            data: result.rows
+        });
+
+    } catch (error) {
+        console.error("Error mengambil bukti pelanggaran:", error);
+        res.status(500).json({
+            message: "Internal Server Error"
+        });
+    }
+}
