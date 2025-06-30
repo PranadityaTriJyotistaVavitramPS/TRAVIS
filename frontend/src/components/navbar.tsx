@@ -20,7 +20,7 @@ function Navbar() {
   const handleLogin = async (CredentialResponse: any) => {
     try {
       const response = await axios.post(
-        'https://travis-5ojk.onrender.com/api/v1/users/signUpGoogle',
+        `https://${import.meta.env.VITE_BACKEND_DOMAIN}/api/v1/users/signUpGoogle`,
         { token: CredentialResponse.credential },
         { withCredentials: true }
       );

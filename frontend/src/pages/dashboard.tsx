@@ -37,7 +37,7 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchPhotos = async () => {
       try {
-        const res = await axios.get('https://travis-5ojk.onrender.com/api/v1/photos/takeAllEvidence');
+        const res = await axios.get(`https://${import.meta.env.VITE_BACKEND_DOMAIN}/api/v1/photos/takeAllEvidence`);
         if (res.data?.data) {
           setPhotoData(res.data.data);
           photoDataRef.current = res.data.data; // Store in ref for later use
@@ -51,31 +51,13 @@ const Dashboard = () => {
   }, []);
 
 
-  const loadGeoJson = (map: any, isIndonesia: boolean) => {
-    map.data.forEach((feature: any) => map.data.remove(feature)); // Clear existing
+const loadGeoJson = (map: any, isIndonesia: boolean) => {
+  map.data.forEach((feature: any) => map.data.remove(feature)); // Clear existing
+  const geoPath = isIndonesia ? '/maps/indonesia.geojson' : '/maps/surabaya1.geojson';
 
-    const geoPath = isIndonesia ? '/maps/indonesia.geojson' : '/maps/surabaya1.geojson';
-    map.data.loadGeoJson(geoPath);
-
-    map.data.setStyle({
-        fillColor: '#228B22',
-        strokeColor: 'black',
-        strokeWeight: 2
-    });
-
-    map.data.addListener('mouseover', (event: any) => {
-        map.data.overrideStyle(event.feature, { fillColor: '#000000' });
-    });
-
-    map.data.addListener('mouseout', (event: any) => {
-        map.data.overrideStyle(event.feature, { fillColor: '#228B22' });
-    });
-
-    map.data.addListener('click', (event: any) => {
-      const name = event.feature.getProperty('Kecamatan') || 'Unknown';
-      setSelectedDistrict(name);
-
-      const geometry = event.feature.getGeometry();
+  map.data.loadGeoJson(geoPath, null, () => {
+    map.data.forEach((feature: any) => {
+      const geometry = feature.getGeometry();
       const paths: google.maps.LatLngLiteral[][] = [];
 
       const processGeometry = (geom: any) => {
@@ -88,43 +70,92 @@ const Dashboard = () => {
           paths.push(ringCoords);
         });
       };
-
       processGeometry(geometry);
 
-      const filtered = photoDataRef.current.filter((photo) => {
-        const point = new window.google.maps.LatLng(parseFloat(photo.latitude), parseFloat(photo.longitude));
-        return paths.some((ring) =>
-          window.google.maps.geometry.poly.containsLocation(
-            point,
-            new window.google.maps.Polygon({ paths: [ring] })
-          )
-        );
+      // Count how many photos are inside this polygon
+      let count = 0;
+      const polygon = new google.maps.Polygon({ paths });
+      photoDataRef.current.forEach((photo) => {
+        const point = new google.maps.LatLng(parseFloat(photo.latitude), parseFloat(photo.longitude));
+        if (google.maps.geometry.poly.containsLocation(point, polygon)) {
+          count++;
+        }
       });
 
-      setFilteredPhotos(filtered);
-      setCurrentPage(1);
+      feature.setProperty('evidenceCount', count);
     });
 
+    // Set conditional style after setting evidenceCount
+    map.data.setStyle((feature: any) => {
+      const count = feature.getProperty('evidenceCount');
+      let color = '#00FF00'; // green
+      if (count === 1) color = '#FFFF00'; // yellow
+      else if (count > 1) color = '#FF0000'; // red
 
+      return {
+        fillColor: color,
+        strokeColor: 'black',
+        strokeWeight: 2,
+        fillOpacity: 0.5
+      };
+    });
+  });
 
+  map.data.addListener('mouseover', (event: any) => {
+    map.data.overrideStyle(event.feature, { fillOpacity: 0.8 });
+  });
 
-        
-    if (isIndonesia) {
-        map.setOptions({ restriction: null });
-        map.setZoom(5);
-        map.setCenter({ lat: -2.5489, lng: 118.0149 });
-    } else {
-        map.setOptions({
-        restriction: {
-            latLngBounds: surabayaBounds,
-            strictBounds: true
-        }
-        });
-        
-        map.setZoom(12);
-        map.setCenter(surabayaCenter);
-    }
-  };
+  map.data.addListener('mouseout', () => {
+    map.data.revertStyle(); // revert to evidence color
+  });
+
+  map.data.addListener('click', (event: any) => {
+    const name = event.feature.getProperty('Kecamatan') || 'Unknown';
+    setSelectedDistrict(name);
+
+    const geometry = event.feature.getGeometry();
+    const paths: google.maps.LatLngLiteral[][] = [];
+
+    const processGeometry = (geom: any) => {
+      const rings = geom.getArray();
+      rings.forEach((ring: any) => {
+        const ringCoords = ring.getArray().map((latLng: any) => ({
+          lat: latLng.lat(),
+          lng: latLng.lng(),
+        }));
+        paths.push(ringCoords);
+      });
+    };
+    processGeometry(geometry);
+
+    const filtered = photoDataRef.current.filter((photo) => {
+      const point = new google.maps.LatLng(parseFloat(photo.latitude), parseFloat(photo.longitude));
+      return paths.some((ring) =>
+        google.maps.geometry.poly.containsLocation(point, new google.maps.Polygon({ paths: [ring] }))
+      );
+    });
+
+    setFilteredPhotos(filtered);
+    setCurrentPage(1);
+  });
+
+  if (isIndonesia) {
+    map.setOptions({ restriction: null });
+    map.setZoom(5);
+    map.setCenter({ lat: -2.5489, lng: 118.0149 });
+  } else {
+    map.setOptions({
+      restriction: {
+        latLngBounds: surabayaBounds,
+        strictBounds: true,
+      },
+    });
+
+    map.setZoom(12);
+    map.setCenter(surabayaCenter);
+  }
+};
+
 
 
   const toggleGeoJson = () => {
