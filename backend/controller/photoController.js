@@ -33,6 +33,8 @@ exports.uploadBuktiPelanggaran = async(req,res) =>{
     const foto = req.files
     const {id_user} = req.user
     const { latitude, longitude, date } = req.body
+
+    console.log("timestamp:", date);
     try {
 
         const upload = await uploadBuktiFoto(foto)
