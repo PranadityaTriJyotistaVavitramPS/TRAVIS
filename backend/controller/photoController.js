@@ -45,12 +45,19 @@ exports.uploadBuktiPelanggaran = async (req, res) => {
 
         const input = await query(
           `INSERT INTO foto_table (url, latitude, longitude, date, id_user, geom)
-           VALUES ($1, $2, $3, $4, $5, ST_SetSRID(ST_MakePoint($3, $2), 4326))
+           VALUES ($1, $2, $3, $4, $5, )
            RETURNING *`,
           [imageUrl, latitude, longitude, date, id_user]
         );
 
         const result = input.rows[0]
+
+        await query(`
+          UPDATE foto_table
+          SET geom = ST_SetSRID(ST_MakePoint($1, $2), 4326)
+          WHERE id_foto = $3
+        `, [longitude, latitude, result.id_foto]);
+
         res.status(200).json({
             message: 'success',
             result
