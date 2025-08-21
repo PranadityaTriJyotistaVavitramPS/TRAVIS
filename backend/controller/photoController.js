@@ -44,8 +44,8 @@ exports.uploadBuktiPelanggaran = async (req, res) => {
         const imageUrl = upload[0]
 
         const input = await query(
-          `INSERT INTO foto_table (url, latitude, longitude, date, id_user, geom)
-           VALUES ($1, $2, $3, $4, $5, )
+          `INSERT INTO foto_table (url, latitude, longitude, date, id_user)
+           VALUES ($1, $2, $3, $4, $5 )
            RETURNING *`,
           [imageUrl, latitude, longitude, date, id_user]
         );
