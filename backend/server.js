@@ -10,8 +10,8 @@ app.use(express.json());
 app.use(cookieParser());
 
 const corsOptions = {
-  origin: 'http://localhost:5173', 
-  methods: ["GET", "POST", "PUT", "DELETE"], 
+  origin: "http://localhost:5173", 
+  methods: ["GET", "POST", "PUT", "DELETE","OPTIONS"], 
   credentials: true,
 };
 
