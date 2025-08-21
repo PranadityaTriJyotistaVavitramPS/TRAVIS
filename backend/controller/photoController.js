@@ -27,35 +27,41 @@ const upload = multer({
 
 exports.uploadFotoBukti = upload.array('bukti_foto') 
 
-exports.uploadBuktiPelanggaran = async(req,res) =>{
+exports.uploadBuktiPelanggaran = async (req, res) => {
     const foto = req.files
-    const {id_user} = req.user
-    const { latitude, longitude, date } = req.body
+    const { id_user } = req.user
+    let { latitude, longitude, date } = req.body
 
-    console.log("timestamp:", date);
+    // Konversi ke number
+    latitude = parseFloat(latitude)
+    longitude = parseFloat(longitude)
+    date = new Date(date) // optional, kalau mau pastikan jadi date object
+
+    console.log("latitude:", latitude, "longitude:", longitude, "timestamp:", date);
+
     try {
-
         const upload = await uploadBuktiFoto(foto)
         const imageUrl = upload[0]
+
         const input = await query(
           `INSERT INTO foto_table (url, latitude, longitude, date, id_user, geom)
-          VALUES ($1, $2, $3, $4, $5, ST_SetSRID(ST_MakePoint($3::double precision, $2::double precision), 4326))
-          RETURNING *`,
+           VALUES ($1, $2, $3, $4, $5, ST_SetSRID(ST_MakePoint($3, $2), 4326))
+           RETURNING *`,
           [imageUrl, latitude, longitude, date, id_user]
         );
+
         const result = input.rows[0]
         res.status(200).json({
-            message:'success',
+            message: 'success',
             result
         })
     } catch (error) {
-        console.error("Error ketika mencoba mengupload bukti pelanggaran",error)
+        console.error("Error ketika mencoba mengupload bukti pelanggaran", error)
         res.status(500).json({
-            message:"Internal Server ERROR"
+            message: "Internal Server ERROR"
         })
     }
 }
-
 
 exports.takeInfoPelanggaran = async (req, res) => {
   try {
