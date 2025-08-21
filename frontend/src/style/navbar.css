@@ -58,7 +58,7 @@ html, body {
 .nav:hover {
   background-color: white;
   color: black;
-  transform: translateY(-3px);  /* Lift the button on hover */
+  transform: translateY(-3px);  
 }
 
 .log-out-button {

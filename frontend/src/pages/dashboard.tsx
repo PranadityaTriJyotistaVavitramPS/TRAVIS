@@ -1,266 +1,300 @@
-import { useState, useEffect,useRef } from 'react';
-import { GoogleMap, LoadScript } from '@react-google-maps/api';
-import axios from 'axios';
-import "../style/dashboard.css"
-
-const containerStyle = {
-  width: '100%',
-  height: '700px'
-};
-
-const surabayaCenter = {
-  lat: -7.250445,
-  lng: 112.768845
-};
-
-const surabayaBounds = {
-  north: -7.1192976,
-  south: -7.4245334,
-  west: 112.4841046,
-  east: 112.9325514
-};
-
-const libraries: ("geometry")[] = ['geometry'];
-
-const Dashboard = () => {
-  const [geoJsonLoaded, setGeoJsonLoaded] = useState(false); // false = Surabaya, true = Indonesia
-  const [mapRef, setMapRef] = useState<any>(null);
-  const [photoData, setPhotoData] = useState<any[]>([]);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [selectedDistrict, setSelectedDistrict] = useState<string | null>(null);
-  const [filteredPhotos, setFilteredPhotos] = useState<any[] | null>(null);
-  const photoDataRef = useRef<any[]>([]);
+import { useEffect,useState, useRef } from "react";
+import maplibregl, { Map } from "maplibre-gl";
+import "maplibre-gl/dist/maplibre-gl.css";
+import "../style/dashboard.css";
+import ImageWithLocation from "../components/Card";
 
 
-  const itemsPerPage = 8;
-  console.log("Photo data di awal:", photoData);
+export default function IndonesiaMap() {
+  const mapRef = useRef<Map | null>(null);
+
+  const [photos, setPhotos] = useState<any[]>([]);
+  const [selectedArea, setSelectedArea] = useState<string>("");
+  const [cursor, setCursor] = useState<string | null>(null);
+  const [hasNext, setHasNext] = useState(false);
+  const [hasPrev, setHasPrev] = useState(false);
+  const [level, setLevel] = useState<string>(""); 
+  const [gid, setGid] = useState<string>(""); 
+
+  const fetchPhotos = async (level: string, gid: string, dir: "next" | "prev" | null = null) => {
+    const url = `https://${import.meta.env.VITE_BACKEND_DOMAIN}/api/v1/photos/takeAllEvidence?level=${level}&gid=${gid}&limit=8${
+      dir === "next" && cursor ? `&cursor=${cursor}` : ""
+    }${dir === "prev" && cursor ? `&prevCursor=${cursor}` : ""}`;
+
+    const res = await fetch(url);
+    const json = await res.json();
+    console.log("Ini panjang datanya", json.data.length);
+
+    if (!json.data || json.data.length === 0) {
+      setPhotos([]);
+      setCursor(null);
+      setHasNext(false);
+      setHasPrev(false);
+      return;
+    }
+
+    setPhotos(json.data);
+    setCursor(json.pagination.nextCursor || null);
+    setHasNext(!!json.pagination.nextCursor);
+    setHasPrev(!!json.pagination.prevCursor);
+  };
+
+
+
   useEffect(() => {
-    const fetchPhotos = async () => {
-      try {
-        const res = await axios.get(`https://${import.meta.env.VITE_BACKEND_DOMAIN}/api/v1/photos/takeAllEvidence`);
-        if (res.data?.data) {
-          setPhotoData(res.data.data);
-          photoDataRef.current = res.data.data; // Store in ref for later use
-        }
-      } catch (error) {
-        console.error("Failed to fetch photos:", error);
-      }
-    };
+    const map = new maplibregl.Map({
+      container: "map",
+      center: [117, -2],
+      zoom: 4,
+      style: {
+        version: 8,
+      sources: {
+        provinsi: {
+          type: "vector",
+          tiles: ["http://localhost:8080/data/indonesia1/{z}/{x}/{y}.pbf"],
+          minzoom: 0,
+          maxzoom: 7,
+          promoteId: "GID_1"
+        } as any,
+        kabupaten: {
+          type: "vector",
+          tiles: ["http://localhost:8080/data/indonesia2/{z}/{x}/{y}.pbf"],
+          minzoom: 7,
+          maxzoom: 10,
+          promoteId: "GID_2"
+        } as any,
+        kecamatan: {
+          type: "vector",
+          tiles: ["http://localhost:8080/data/indonesia3/{z}/{x}/{y}.pbf"],
+          minzoom: 10,
+          maxzoom: 24,
+          promoteId: "GID_3"
+        } as any
+      },
+        layers: [
+          // provinsi
+          {
+            id: "provinsi-fill",
+            type: "fill",
+            source: "provinsi",
+            "source-layer": "gadm41_IDN_1",
+            paint: {
+              "fill-color": [
+                "case",
+                ["==", ["feature-state", "count"], 0], "#4cbb17",  // hijau
+                ["==", ["feature-state", "count"], 1], "#FFD700",  // kuning
+                [">=", ["feature-state", "count"], 5], "#780606",  // merah
+                "#cccccc"
+              ],
+              "fill-opacity": 0.5
+            },
+            minzoom: 0,
+            maxzoom: 7
+          },
+          {
+            id: "provinsi-outline",
+            type: "line",
+            source: "provinsi",
+            "source-layer": "gadm41_IDN_1",
+            paint: { "line-color": "#000000", "line-width": 1 },
+            minzoom: 0,
+            maxzoom: 7
+          },
 
-    fetchPhotos();
+          // kabupaten
+          {
+            id: "kabupaten-fill",
+            type: "fill",
+            source: "kabupaten",
+            "source-layer": "gadm41_IDN_2",
+            paint: {
+              "fill-color": [
+                "case",
+                ["==", ["feature-state", "count"], 0], "#4cbb17",
+                ["==", ["feature-state", "count"], 1], "#FFD700",
+                [">=", ["feature-state", "count"], 5], "#780606",
+                "#cccccc"
+              ],
+              "fill-opacity": 0.5
+            },
+            minzoom: 7,
+            maxzoom: 10
+          },
+          {
+            id: "kabupaten-outline",
+            type: "line",
+            source: "kabupaten",
+            "source-layer": "gadm41_IDN_2",
+            paint: { "line-color": "#000000", "line-width": 1 },
+            minzoom: 7,
+            maxzoom: 10
+          },
+
+          // kecamatan
+          {
+            id: "kecamatan-fill",
+            type: "fill",
+            source: "kecamatan",
+            "source-layer": "gadm41_IDN_3",
+            paint: {
+              "fill-color": [
+                "case",
+                ["==", ["feature-state", "count"], 0], "#4cbb17",
+                ["==", ["feature-state", "count"], 1], "#FFD700",
+                [">=", ["feature-state", "count"], 3], "#780606",
+                "#cccccc"
+              ],
+              "fill-opacity": 0.6
+            },
+            minzoom: 10
+          },
+          {
+            id: "kecamatan-outline",
+            type: "line",
+            source: "kecamatan",
+            "source-layer": "gadm41_IDN_3",
+            paint: { "line-color": "#000000", "line-width": 1 },
+            minzoom: 10
+          }
+        ]
+      }
+    });
+
+    // event load → set feature state
+    map.on("load", async () => {
+      try {
+        // provinsi
+        const resProv = await fetch(`https://${import.meta.env.VITE_BACKEND_DOMAIN}/api/v1/photos/sumevidenceprovince`);
+        const prov = await resProv.json();
+        prov?.data?.forEach((row: any) => {
+          map.setFeatureState(
+            { source: "provinsi", sourceLayer: "gadm41_IDN_1", id: row.id },
+            { count: row.count }
+          );
+        });
+
+        // kabupaten
+        const resKab = await fetch(`https://${import.meta.env.VITE_BACKEND_DOMAIN}/api/v1/photos/sumevidencedistrict`);
+        const kab = await resKab.json();
+        kab?.data?.forEach((row: any) => {
+          map.setFeatureState(
+            { source: "kabupaten", sourceLayer: "gadm41_IDN_2", id: row.id },
+            { count: row.count }
+          );
+        });
+
+        // kecamatan
+        const resKec = await fetch(`https://${import.meta.env.VITE_BACKEND_DOMAIN}/api/v1/photos/sumevidencesubdistrict`);
+        const kec = await resKec.json();
+        kec?.data?.forEach((row: any) => {
+          map.setFeatureState(
+            { source: "kecamatan", sourceLayer: "gadm41_IDN_3", id: row.id },
+            { count: row.count }
+          );
+        });
+      } catch (err) {
+        console.error("Gagal fetch evidence:", err);
+      }
+    });
+
+    map.on("click", "provinsi-fill", async (e) => {
+      const f = e.features?.[0];
+      if (!f) return;
+
+      const gid = f.properties?.GID_1;
+      const name = f.properties?.NAME_1;
+      const st = map.getFeatureState({ source: "provinsi", sourceLayer: "gadm41_IDN_1", id: gid });
+      new maplibregl.Popup()
+        .setLngLat(e.lngLat)
+        .setHTML(`
+          <div style="font-weight:600">Provinsi: ${name || "?"}</div>
+          <div style="margin-top:4px">Evidence: ${st?.count ?? 0}</div>
+        `)
+        .addTo(map);
+      setSelectedArea(name);
+      setLevel("provinsi");
+      setGid(gid);
+      await fetchPhotos("provinsi", gid);
+    });
+
+    map.on("click", "kabupaten-fill", async(e) => {
+      const f = e.features?.[0];
+      if (!f) return;
+
+      const gid = f.properties?.GID_2;
+      const name = f.properties?.NAME_2;
+      const st = map.getFeatureState({ source: "kabupaten", sourceLayer: "gadm41_IDN_2", id: gid });
+      new maplibregl.Popup()
+        .setLngLat(e.lngLat)
+        .setHTML(`
+          <div style="font-weight:600">Kota/Kabupaten: ${name || "?"}</div>
+          <div style="margin-top:4px">Evidence: ${st?.count ?? 0}</div>
+        `)
+        .addTo(map);
+
+      setSelectedArea(name);
+      setLevel("kabupaten");
+      setGid(gid);
+      await fetchPhotos("kabupaten", gid);
+    });
+
+    map.on("click", "kecamatan-fill", async (e) => {
+      const f = e.features?.[0];
+      if (!f) return;
+
+      const gid = f.properties?.GID_3;
+      const name = f.properties?.NAME_3;
+      const st = map.getFeatureState({ source: "kecamatan", sourceLayer: "gadm41_IDN_3", id: gid });
+
+      new maplibregl.Popup()
+      .setLngLat(e.lngLat)
+      .setHTML(`
+        <div style="font-weight:600">Kecamatan:${name || "?"}</div>
+        <div style="margin-top:4px">Evidence: ${st?.count ?? 0}</div>
+      `)
+      .addTo(map);
+
+      setSelectedArea(name);
+      setLevel("kecamatan");
+      setGid(gid);
+      await fetchPhotos("kecamatan", gid);
+    });
+
+    mapRef.current = map;
+    return () => map.remove();
   }, []);
 
-
-const loadGeoJson = (map: any, isIndonesia: boolean) => {
-  map.data.forEach((feature: any) => map.data.remove(feature)); // Clear existing
-  const geoPath = isIndonesia ? '/maps/indonesia.geojson' : '/maps/surabaya1.geojson';
-
-  map.data.loadGeoJson(geoPath, null, () => {
-    map.data.forEach((feature: any) => {
-      const geometry = feature.getGeometry();
-      const paths: google.maps.LatLngLiteral[][] = [];
-
-      const processGeometry = (geom: any) => {
-        const rings = geom.getArray();
-        rings.forEach((ring: any) => {
-          const ringCoords = ring.getArray().map((latLng: any) => ({
-            lat: latLng.lat(),
-            lng: latLng.lng(),
-          }));
-          paths.push(ringCoords);
-        });
-      };
-      processGeometry(geometry);
-
-      // Count how many photos are inside this polygon
-      let count = 0;
-      const polygon = new google.maps.Polygon({ paths });
-      photoDataRef.current.forEach((photo) => {
-        const point = new google.maps.LatLng(parseFloat(photo.latitude), parseFloat(photo.longitude));
-        if (google.maps.geometry.poly.containsLocation(point, polygon)) {
-          count++;
-        }
-      });
-
-      feature.setProperty('evidenceCount', count);
-    });
-
-    // Set conditional style after setting evidenceCount
-    map.data.setStyle((feature: any) => {
-      const count = feature.getProperty('evidenceCount');
-      let color = '#00FF00'; // green
-      if (count === 1) color = '#FFFF00'; // yellow
-      else if (count > 1) color = '#FF0000'; // red
-
-      return {
-        fillColor: color,
-        strokeColor: 'black',
-        strokeWeight: 2,
-        fillOpacity: 0.5
-      };
-    });
-  });
-
-  map.data.addListener('mouseover', (event: any) => {
-    map.data.overrideStyle(event.feature, { fillOpacity: 0.8 });
-  });
-
-  map.data.addListener('mouseout', () => {
-    map.data.revertStyle(); // revert to evidence color
-  });
-
-  map.data.addListener('click', (event: any) => {
-    const name = event.feature.getProperty('Kecamatan') || 'Unknown';
-    setSelectedDistrict(name);
-
-    const geometry = event.feature.getGeometry();
-    const paths: google.maps.LatLngLiteral[][] = [];
-
-    const processGeometry = (geom: any) => {
-      const rings = geom.getArray();
-      rings.forEach((ring: any) => {
-        const ringCoords = ring.getArray().map((latLng: any) => ({
-          lat: latLng.lat(),
-          lng: latLng.lng(),
-        }));
-        paths.push(ringCoords);
-      });
-    };
-    processGeometry(geometry);
-
-    const filtered = photoDataRef.current.filter((photo) => {
-      const point = new google.maps.LatLng(parseFloat(photo.latitude), parseFloat(photo.longitude));
-      return paths.some((ring) =>
-        google.maps.geometry.poly.containsLocation(point, new google.maps.Polygon({ paths: [ring] }))
-      );
-    });
-
-    setFilteredPhotos(filtered);
-    setCurrentPage(1);
-  });
-
-  if (isIndonesia) {
-    map.setOptions({ restriction: null });
-    map.setZoom(5);
-    map.setCenter({ lat: -2.5489, lng: 118.0149 });
-  } else {
-    map.setOptions({
-      restriction: {
-        latLngBounds: surabayaBounds,
-        strictBounds: true,
-      },
-    });
-
-    map.setZoom(12);
-    map.setCenter(surabayaCenter);
-  }
-};
-
-
-
-  const toggleGeoJson = () => {
-    const newState = !geoJsonLoaded;
-    setGeoJsonLoaded(newState);
-    if (mapRef) loadGeoJson(mapRef, newState);
-  };
-
-  const onLoad = (map: any) => {
-    setMapRef(map);
-    loadGeoJson(map, geoJsonLoaded);
-  };
-
-  const photosToShow = filteredPhotos ?? photoData;
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentPhotos = photosToShow.slice(indexOfFirstItem, indexOfLastItem);
-  const totalPages = Math.ceil(photosToShow.length / itemsPerPage);
-
+  console.log(photos)
   return (
-    <div className='dashboard-main-container'>
-      <div className="button-container">
-        <button onClick={toggleGeoJson}>
-          {geoJsonLoaded ? 'Show Surabaya' : 'Show Indonesia'}
-        </button>
-      </div>
+    <div className="dashboard-container">
+      <div id="map" className="map-box" />
+      <div className="foto-pelanggaran-wrap">
+        <h2>Foto Pelanggaran {selectedArea && `(${selectedArea})`}</h2>
 
-      <div className='map-container'>    
-        <LoadScript googleMapsApiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY}
-          libraries={libraries}>
-            <GoogleMap
-            mapContainerStyle={containerStyle}
-            center={surabayaCenter}
-            zoom={12}
-            onLoad={onLoad}
-            options={
-              geoJsonLoaded
-              ? {} 
-              : {
-                  restriction: {
-                    latLngBounds: surabayaBounds,
-                    strictBounds: true,
-                  }
-                }
-            }
-            />
-        </LoadScript>
-      </div>
-
-      {selectedDistrict && (
-          <h2 className="selected-district-title">
-            Kecamatan: {selectedDistrict}
-          </h2>
-        )
-      }
-
-
-      <div className="image-gallery">
-        {currentPhotos.map((photo) => (
-          <ImageWithLocation
-            key={photo.id_foto}
-            src={photo.url}
-            location={`Lat: ${photo.latitude}, Lng: ${photo.longitude}`}
-            time={new Date(photo.date).toLocaleDateString('id-ID', {
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric'
-            })}
-          />
-        ))}
-      </div>
-
-      {totalPages > 1 && (
-        <div className="pagination">
-          <button onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))} disabled={currentPage === 1}>
-            Prev
-          </button>
-          {Array.from({ length: totalPages }, (_, i) => (
-            <button
-              key={i}
-              className={currentPage === i + 1 ? 'active' : ''}
-              onClick={() => setCurrentPage(i + 1)}
-            >
-              {i + 1}
-            </button>
-          ))}
-          <button onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))} disabled={currentPage === totalPages}>
-            Next
-          </button>
+        <div className="foto-pelanggaran-list">
+          {photos.length > 0 ? (
+            photos.map((foto, idx) => (
+              <ImageWithLocation
+                key={idx}
+                src={foto.url}
+                location={`Lat: ${foto.latitude}, Lng: ${foto.longitude}`}
+                time={new Date(foto.date).toLocaleDateString("id-ID", {
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric"
+                })}
+              />
+            ))
+          ) : (
+            <i>Tidak ada foto pelanggaran</i>
+          )}
         </div>
-      )}
-    </div>
-  );
-};
 
-const ImageWithLocation = ({ src, location, time }: { src: string; location: string; time: string }) => {
-  return (
-    <div className="image-container">
-      <img src={src} alt="location" className="gallery-image" />
-      <div className="image-overlay">
-        <p className="image-info">{location}</p>
-        <p className="image-info">{time}</p>
+        <div className="pagination-controls">
+          <button className="pagination-button" disabled={!hasPrev} onClick={() => fetchPhotos(level, gid, "prev")}>Prev</button>
+          <button className="pagination-button" disabled={!hasNext} onClick={() => fetchPhotos(level, gid, "next")}>Next</button>
+        </div>
       </div>
     </div>
   );
-};
-
-export default Dashboard;
+}
